@@ -1,0 +1,203 @@
+openapi: 3.0.0
+info:
+  title: Ordered Todo List API
+  version: 1.0.0
+  description: API for Ordered Todo List data
+servers:
+  - url: http://localhost:5000/api/v1
+    description: Development server
+components:
+  schemas:
+    GeneralResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - success
+            - fail
+        message:
+          type: string
+  parameters:
+    itemId:
+      in: path
+      name: itemId
+      required: true
+      schema:
+        type: integer
+      description: The ObjectID of a todo list item
+  responses:
+    400BadRequest:
+      description: The request cannot be processed due to incorrect input.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                enum:
+                  - fail
+              message:
+                type: string
+    404NotFound:
+      description: The requested resource could not be found.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                enum:
+                  - fail
+              message:
+                type: string
+paths:
+  /todos:
+    post:
+      description: Create a todo list item
+      requestBody:
+        description: Provide details for the todo list item
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - details
+              properties:
+                details:
+                  type: string
+      responses:
+        200:
+          description: The todo list item was successfully created and added to the end of the list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/GeneralResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          _id:
+                            type: string
+                          details:
+                            type: string
+                          position:
+                            type: integer
+        400:
+          $ref: '#/components/responses/400BadRequest'
+    get:
+      description: Fetch all todo list items in order
+      responses:
+        200:
+          description: Returns a list of todo list items saved in the db sorted by position.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/GeneralResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            _id:
+                              type: string
+                            details:
+                              type: string
+                            position:
+                              type: integer
+  /todos/{itemId}:
+    get:
+      description: Fetch a single todo list item
+      parameters:
+        - $ref: '#/components/parameters/itemId'
+      responses:
+        200:
+          description: The todo list item was successfully fetched
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/GeneralResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          _id:
+                            type: string
+                          details:
+                            type: string
+                          position:
+                            type: integer
+        404:
+          $ref: '#/components/responses/404NotFound'
+    put:
+      description: Update a single todo list item
+      parameters:
+        - $ref: '#/components/parameters/itemId'
+      requestBody:
+        description: Provide details for the todo list item
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                details:
+                  type: string
+                position:
+                  type: integer
+      responses:
+        200:
+          description: Returns the todo list item that was successfully updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/GeneralResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          _id:
+                            type: string
+                          details:
+                            type: string
+                          position:
+                            type: integer
+        404:
+          $ref: '#/components/responses/404NotFound'
+    delete:
+      description: Update a single todo list item
+      parameters:
+        - $ref: '#/components/parameters/itemId'
+      responses:
+        200: 
+          description: Returns the todo list item that was successfully deleted
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/GeneralResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          _id:
+                            type: string
+                          details:
+                            type: string
+                          position:
+                            type: integer
+        404:
+          $ref: '#/components/responses/404NotFound'
